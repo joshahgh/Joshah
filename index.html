@@ -34,7 +34,9 @@
       height: 200px;
     }
 
+    /* YES BUTTON WITH HOTSPOT */
     #yes {
+      position: relative;
       font-size: 1.8rem;
       padding: 15px 40px;
       border: none;
@@ -42,7 +44,33 @@
       background-color: #ff4d88;
       color: white;
       cursor: pointer;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+      overflow: hidden;
+    }
+
+    /* Pulse / hotspot animation */
+    #yes::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 20px;
+      height: 20px;
+      background: rgba(255,255,255,0.6);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      animation: hotspot 1.8s infinite;
+    }
+
+    @keyframes hotspot {
+      0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.8;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(6);
+        opacity: 0;
+      }
     }
 
     #no {
@@ -65,16 +93,16 @@
     }
 
     @keyframes floatUp {
-      0% { transform: translateY(0); }
-      100% { transform: translateY(-110vh); opacity: 0; }
+      from { transform: translateY(0); }
+      to { transform: translateY(-110vh); opacity: 0; }
     }
   </style>
 </head>
 
 <body>
 
-  <!-- AUDIO -->
-  <audio id="bg-music" preload="auto" loop>
+  <!-- SINGLE AUDIO ELEMENT -->
+  <audio id="bg-music" preload="auto">
     <source src="giveon-stuck-on-you.mp3" type="audio/mpeg">
   </audio>
 
@@ -88,59 +116,61 @@
   </div>
 
   <script>
-    const noBtn = document.getElementById("no");
-    const yesBtn = document.getElementById("yes");
     const music = document.getElementById("bg-music");
+    const yesBtn = document.getElementById("yes");
+    const noBtn = document.getElementById("no");
     const container = document.getElementById("main-content");
 
-    function playMusic() {
+    music.volume = 1;
+
+    function safePlay() {
       music.play().catch(() => {});
     }
 
-    // Start music on first interaction
-    document.addEventListener("click", playMusic, { once: true });
+    // Start first song on first interaction
+    document.addEventListener("click", safePlay, { once: true });
 
-    // Fade helper
-    function fadeVolume(from, to, duration, callback) {
-      const steps = 20;
+    // Fade utility
+    function fade(to, duration, callback) {
+      const steps = 25;
       const stepTime = duration / steps;
-      let currentStep = 0;
-      const volumeStep = (to - from) / steps;
-
-      music.volume = from;
+      const start = music.volume;
+      const change = to - start;
+      let current = 0;
 
       const interval = setInterval(() => {
-        currentStep++;
-        music.volume = Math.min(Math.max(music.volume + volumeStep, 0), 1);
-
-        if (currentStep >= steps) {
+        current++;
+        music.volume = Math.min(Math.max(start + (change * current / steps), 0), 1);
+        if (current >= steps) {
           clearInterval(interval);
           if (callback) callback();
         }
       }, stepTime);
     }
 
-    // YES CLICK
+    // YES CLICK LOGIC
     yesBtn.addEventListener("click", () => {
-      playMusic();
+      safePlay();
 
-      // 📱 Mobile vibration
+      // 📱 Vibration
       if (navigator.vibrate) {
         navigator.vibrate([200, 100, 200]);
       }
 
       // Fade out Giveon
-      fadeVolume(1, 0, 1200, () => {
+      fade(0, 1200, () => {
         music.pause();
         music.src = "fridayy-stand-by-me.mp3";
         music.load();
-        music.play();
 
-        // Fade in Fridayy
-        fadeVolume(0, 1, 1200);
+        music.oncanplaythrough = () => {
+          music.volume = 0;
+          music.play();
+          fade(1, 1200);
+        };
       });
 
-      // Update UI without killing audio
+      // Update UI (audio stays alive)
       container.innerHTML = `
         <h1>
           Yaaay! 💖💍<br>
