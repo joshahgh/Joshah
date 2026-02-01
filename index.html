@@ -74,11 +74,11 @@
 <body>
 
   <!-- AUDIO -->
-  <audio id="bg-music" loop preload="auto">
+  <audio id="bg-music" preload="auto" loop>
     <source src="giveon-stuck-on-you.mp3" type="audio/mpeg">
   </audio>
 
-  <div class="container">
+  <div class="container" id="main-content">
     <h1>Sandra, will you be my Valentine? 💖</h1>
 
     <div class="buttons">
@@ -91,37 +91,65 @@
     const noBtn = document.getElementById("no");
     const yesBtn = document.getElementById("yes");
     const music = document.getElementById("bg-music");
+    const container = document.getElementById("main-content");
 
     function playMusic() {
-      music.play().catch(() => {
-        console.log("Music play blocked until user interaction");
-      });
+      music.play().catch(() => {});
     }
 
-    // Play music on ANY click
+    // Start music on first interaction
     document.addEventListener("click", playMusic, { once: true });
 
-    // Ensure music plays when YES is clicked
+    // Fade helper
+    function fadeVolume(from, to, duration, callback) {
+      const steps = 20;
+      const stepTime = duration / steps;
+      let currentStep = 0;
+      const volumeStep = (to - from) / steps;
+
+      music.volume = from;
+
+      const interval = setInterval(() => {
+        currentStep++;
+        music.volume = Math.min(Math.max(music.volume + volumeStep, 0), 1);
+
+        if (currentStep >= steps) {
+          clearInterval(interval);
+          if (callback) callback();
+        }
+      }, stepTime);
+    }
+
+    // YES CLICK
     yesBtn.addEventListener("click", () => {
       playMusic();
 
-      document.body.innerHTML = `
-        <div style="
-          display:flex;
-          justify-content:center;
-          align-items:center;
-          height:100vh;
-          background:linear-gradient(135deg,#ff9a9e,#fad0c4);
-          font-family:'Pacifico', cursive;
-          color:#b30059;
-          text-align:center;
-        ">
-          <h1>Yaaay! 💖💍<br>You just made me the happiest person alive 😍</h1>
-        </div>
+      // 📱 Mobile vibration
+      if (navigator.vibrate) {
+        navigator.vibrate([200, 100, 200]);
+      }
+
+      // Fade out Giveon
+      fadeVolume(1, 0, 1200, () => {
+        music.pause();
+        music.src = "fridayy-stand-by-me.mp3";
+        music.load();
+        music.play();
+
+        // Fade in Fridayy
+        fadeVolume(0, 1, 1200);
+      });
+
+      // Update UI without killing audio
+      container.innerHTML = `
+        <h1>
+          Yaaay! 💖💍<br>
+          You are stuck with me now 😌💖
+        </h1>
       `;
     });
 
-    // Runaway NO button
+    // Runaway NO
     noBtn.addEventListener("mouseenter", () => {
       noBtn.style.left = Math.random() * 300 + "px";
       noBtn.style.top = Math.random() * 150 + "px";
