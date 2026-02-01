@@ -1,16 +1,14 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Will You Be My Valentine?</title>
 
-  <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
 
   <style>
     body {
       margin: 0;
-      padding: 0;
       height: 100vh;
       background: linear-gradient(135deg, #ffdde1, #ee9ca7);
       display: flex;
@@ -45,25 +43,19 @@
       color: white;
       cursor: pointer;
       box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-      transition: transform 0.2s;
-    }
-
-    #yes:hover {
-      transform: scale(1.1);
     }
 
     #no {
       position: absolute;
       font-size: 0.6rem;
       padding: 5px 10px;
-      border: none;
       border-radius: 20px;
       background-color: #f2f2f2;
       color: #777;
+      border: none;
       cursor: pointer;
     }
 
-    /* Floating Hearts */
     .heart {
       position: absolute;
       bottom: -20px;
@@ -73,23 +65,18 @@
     }
 
     @keyframes floatUp {
-      0% {
-        transform: translateY(0) scale(1);
-        opacity: 0.7;
-      }
-      100% {
-        transform: translateY(-110vh) scale(1.5);
-        opacity: 0;
-      }
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-110vh); opacity: 0; }
     }
   </style>
 </head>
+
 <body>
 
-  <audio id="bg-music" loop>
-  <source src="giveon-stuck-on-you.mp3" type="audio/mpeg">
-</audio>
-
+  <!-- AUDIO -->
+  <audio id="bg-music" loop preload="auto">
+    <source src="giveon-stuck-on-you.mp3" type="audio/mpeg">
+  </audio>
 
   <div class="container">
     <h1>Sandra, will you be my Valentine? 💖</h1>
@@ -102,22 +89,22 @@
 
   <script>
     const noBtn = document.getElementById("no");
+    const yesBtn = document.getElementById("yes");
     const music = document.getElementById("bg-music");
 
-    // Play music on first interaction
-    document.body.addEventListener("click", () => {
-      music.play();
-    }, { once: true });
+    function playMusic() {
+      music.play().catch(() => {
+        console.log("Music play blocked until user interaction");
+      });
+    }
 
-    noBtn.addEventListener("mouseover", () => {
-      const x = Math.random() * 300;
-      const y = Math.random() * 150;
+    // Play music on ANY click
+    document.addEventListener("click", playMusic, { once: true });
 
-      noBtn.style.left = x + "px";
-      noBtn.style.top = y + "px";
-    });
+    // Ensure music plays when YES is clicked
+    yesBtn.addEventListener("click", () => {
+      playMusic();
 
-    document.getElementById("yes").addEventListener("click", () => {
       document.body.innerHTML = `
         <div style="
           display:flex;
@@ -134,18 +121,21 @@
       `;
     });
 
-    // Create floating hearts
+    // Runaway NO button
+    noBtn.addEventListener("mouseenter", () => {
+      noBtn.style.left = Math.random() * 300 + "px";
+      noBtn.style.top = Math.random() * 150 + "px";
+    });
+
+    // Floating hearts
     function createHeart() {
       const heart = document.createElement("div");
-      heart.classList.add("heart");
+      heart.className = "heart";
       heart.innerHTML = "💖";
       heart.style.left = Math.random() * 100 + "vw";
-      heart.style.animationDuration = (4 + Math.random() * 3) + "s";
+      heart.style.animationDuration = 4 + Math.random() * 3 + "s";
       document.body.appendChild(heart);
-
-      setTimeout(() => {
-        heart.remove();
-      }, 7000);
+      setTimeout(() => heart.remove(), 7000);
     }
 
     setInterval(createHeart, 500);
